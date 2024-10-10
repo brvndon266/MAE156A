@@ -38,8 +38,7 @@ end
 
 toc % Stops time measurement and displays time
 
-% Note tic toc are useful to determine how long will the pendulum will
-% oscillate
+
 
 
 
