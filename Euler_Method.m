@@ -1,4 +1,4 @@
-% Pendulum Estimate Swing Time using Euler Method
+%% Pendulum Estimate Swing Time using Euler Method
 
 close all;
 clear;
@@ -31,6 +31,11 @@ for i = 1:length(radii)
     theta(1) = theta0;
     omega(1) = omega0;
     
+    % Energy arrays
+    PE = zeros(size(t));  % Potential Energy
+    KE = zeros(size(t));  % Kinetic Energy
+    TotalEnergy = zeros(size(t));  % Total Energy
+    
     % Euler method loop
     for n = 1:length(t)-1
         % Calculate torque due to gravity and friction
@@ -54,24 +59,50 @@ for i = 1:length(radii)
         omega(n+1) = omega(n) + alpha * dt;  % update angular velocity
         theta(n+1) = theta(n) + omega(n) * dt;  % update angle
         
+        % Calculate potential and kinetic energy
+        height = L * (1 - cos(theta(n+1)));  % height above the lowest point
+        PE(n+1) = m * g * height;  % Potential Energy
+        KE(n+1) = 0.5 * m * (L * omega(n+1))^2;  % Kinetic Energy
+        TotalEnergy(n+1) = PE(n+1) + KE(n+1);  % Total Energy
+        
         % Stop if the pendulum comes to rest (approximation, slightly increased tolerance)
         if abs(omega(n+1)) < 5e-4 && abs(theta(n+1)) < 0.01
             break;
         end
     end
     
-    % Calculate total duration of swing
-    total_time = t(n);
+    % Convert angle from radians to degrees
+    theta_deg = theta(1:n) * (180 / pi);
     
-    % Plot the results for each radius
+    % Plot the angle (degrees) over time
     figure;
-    plot(t(1:n), theta(1:n));
-    title(['Pendulum Swing with Radius = ', num2str(r * 39.37), ' inches']);
+    subplot(3,1,1);
+    plot(t(1:n), theta_deg);
+    title(['Pendulum Swing (Radius = ', num2str(r * 39.37), ' inches)']);
     xlabel('Time (s)');
-    ylabel('Angle (rad)');
+    ylabel('Angle (degrees)');
+    
+    % Plot the velocity (angular velocity) over time
+    subplot(3,1,2);
+    plot(t(1:n), omega(1:n));
+    title('Angular Velocity over Time');
+    xlabel('Time (s)');
+    ylabel('Angular Velocity (rad/s)');
+    
+    % Plot the potential energy, kinetic energy, and total energy over time
+    subplot(3,1,3);
+    plot(t(1:n), PE(1:n), 'DisplayName', 'Potential Energy');
+    hold on;
+    plot(t(1:n), KE(1:n), 'DisplayName', 'Kinetic Energy');
+    plot(t(1:n), TotalEnergy(1:n), '--', 'DisplayName', 'Total Energy');
+    title('Energy over Time');
+    xlabel('Time (s)');
+    ylabel('Energy (J)');
+    legend;
+    hold off;
     
     % Display comparison with experimental value
     disp(['For radius = ', num2str(r * 39.37), ' inches:']);
-    disp(['Simulated duration: ', num2str(total_time), ' seconds']);
+    disp(['Simulated duration: ', num2str(t(n)), ' seconds']);
     disp(['Experimental duration: ', num2str(experimental_times(i)), ' seconds']);
 end
